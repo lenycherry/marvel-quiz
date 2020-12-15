@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react'
 import { Link } from 'react-router-dom'
 import { FirebaseContext } from '../Firebase'
 
-const Signup = (props) => {
+const Signup = props => {
 
     const firebase = useContext(FirebaseContext);
 
@@ -21,16 +21,23 @@ const Signup = (props) => {
         setLoginData({ ...loginData, [e.target.id]: e.target.value });
     }
 
-    //Quand on submit, on fait appel à la fonction signupUser grâce au context pour enregistrer les datas dans firebase.
-    //lorsque c'est enregistré, on modifie les states pour les remettre dans leur état d'origine, soit data (cad vides).
-    //Renvoi vers la page d'acceuil grâce au props history et la méthode push (notre composant détient (props) en argument pour nous permettre de les utiliser).
-    //si il y a une erreur dans le formulaire, on met à jour l'erreur pour l'afficher correctement dans la const errorMsg (gestion des erreurs)
-    //et on modifie les states pour les remettre dans leur état d'origine, soit data (cad vides).
+    //Quand on submit, on fait appel à la fonction signupUser grâce au context FirebseContext pour enregistrer les datas dans firebase.
     const handleSubmit = e => {
         e.preventDefault();
-        const { email, password } = loginData;
+        const { email, password, pseudo } = loginData;
         firebase.signupUser(email, password)
-            .then(user => {
+            //Lorsque la requête est effectuée, on crée un nouveau user (pseudo, email) dans la collection users de la bdd.
+            .then(authUser => {
+                return firebase.user(authUser.user.uid).set({
+                    pseudo,
+                    email
+                })
+                //lorsque c'est enregistré, on modifie les states du formulaire pour les remettre dans leur état d'origine, soit data (cad vides).
+                //Renvoi vers la page d'acceuil grâce au props history et la méthode push (notre composant détient (props) en argument pour nous permettre de les utiliser.
+                //si il y a une erreur dans le formulaire, on met à jour l'erreur pour l'afficher correctement dans la const errorMsg (gestion des erreurs)
+                //et on modifie les states pour les remettre dans leur état d'origine, soit data (cad vides).
+            })
+            .then(() => {
                 setLoginData({ ...data });
                 props.history.push('/welcome');
             })

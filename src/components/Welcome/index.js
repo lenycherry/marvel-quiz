@@ -3,10 +3,11 @@ import { FirebaseContext } from '../Firebase'
 import Logout from '../Logout'
 import Quiz from '../Quiz'
 
-const Welcome = (props) => {
+const Welcome = props => {
 
-    const [userSession, setUserSession] = useState(null);
     const firebase = useContext(FirebaseContext);
+    const [userSession, setUserSession] = useState(null);
+    const [userData, setUserData] = useState({});
 
 
     //va vérifier si il y a eu un changement sur userSession en regardant si il existe un user avec le listener de firebase onAuthStateChange,
@@ -17,13 +18,32 @@ const Welcome = (props) => {
             user ? setUserSession(user) : props.history.push('/');
         })
 
-        return () => {
-          listener()
-        }
-    }, [])
+        //si user est différent de null
+        //on va chercher l'id du user
+        //on récupère la data avec .get
+        //si on a une réponse et qu'on a trouvé le user. On vérifie si la data existe (via doc) et on récupère toute la data dans une variable.
+        //et on va mettre à jour le state de userData avec cette variable.
+        if (!!userSession) {
+            firebase.user(userSession.uid)
+                .get()
+                .then(doc => {
+                    if (doc && doc.exists) {
+                        const myData = doc.data()
+                        setUserData(myData)
+                    }
+                })
+                .catch(error => {
 
-//si userSession est null, on affiche un loader le temps que le listener fasse sa vérif et redirige au besoin.
-//si le listener détecte un user on affiche le contenu.
+                })
+        }
+
+        return () => {
+            listener()
+        };
+    }, [userSession])
+
+    //si userSession est null, on affiche un loader le temps que le listener fasse sa vérif et redirige au besoin.
+    //si le listener détecte un user on affiche le contenu.
     return userSession === null ? (
         <Fragment>
             <div className='loader'></div>
@@ -33,7 +53,7 @@ const Welcome = (props) => {
             <div className='quiz-bg'>
                 <div className='container'>
                     <Logout />
-                    <Quiz />
+                    <Quiz userData={userData} />
                 </div>
 
             </div>
