@@ -1,9 +1,13 @@
-import React, { Component } from 'react'
-import { QuizMarvel } from '../quizMarvel'
-import Levels from '../Levels'
-import ProgressBar from '../ProgressBar'
+import React, { Component, Fragment } from 'react';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { QuizMarvel } from '../quizMarvel';
+import Levels from '../Levels';
+import ProgressBar from '../ProgressBar';
+import QuizOver from '../QuizOver';
 //Pour les besoins du cours, ce composant a été travaillé en type classe
 
+toast.configure();
 
 
 class Quiz extends Component {
@@ -18,7 +22,9 @@ class Quiz extends Component {
         idQuestion: 0,
         btnDisabled: true,
         userAnswer: null,
-        score: 0
+        score: 0,
+        showWelcomeMsg: false,
+        quizEnd: false
     }
 
     storedDataRef = React.createRef();
@@ -40,13 +46,29 @@ class Quiz extends Component {
         }
     }
 
+    showWelcomeMsg = pseudo => {
+        if (!this.state.showWelcomeMsg) {
+            this.setState({
+                showWelcomeMsg: true
+            })
+            toast.warn(`Bienvenue ${pseudo}, et bonne chance !`, {
+                position: "top-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: false,
+            });
+        }
+    }
+
     componentDidMount() {
         this.loadQuestions(this.state.levelNames[this.state.quizLevel])
     }
 
     nextQuestion = () => {
         if (this.state.idQuestion === this.state.maxQuestions - 1) {
-            //End
+            this.gameOver();
         } else {
             this.setState(prevState => ({
                 idQuestion: prevState.idQuestion + 1
@@ -59,6 +81,25 @@ class Quiz extends Component {
             this.setState(prevState => ({
                 score: prevState.score + 1
             }))
+            //on affiche une notification success.
+            toast.success('Bravo ! + 1 point', {
+                position: "top-right",
+                autoClose: 2000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: false,
+            });
+            //sinon on affiche une notification error.
+        } else {
+            toast.error('Faux ! 0 point', {
+                position: "top-right",
+                autoClose: 2000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: false,
+            });
         }
 
     }
@@ -82,13 +123,23 @@ class Quiz extends Component {
                 btnDisabled: true
             })
         }
+        //si on a récup le pseudo utilisateur, on invoque la méthode showWelcomeMsg qui va afficher une notification.
+        if (this.props.userData.pseudo) {
+            this.showWelcomeMsg(this.props.userData.pseudo)
+        }
     }
+
     // sur un onClick d' une option, on lance cette méthode qui met a jour les states userAnswer et btnDisabled.
     //Une réponse est sélectionnée et le bouton devient cliquable.
     submitAnswer = selectedAnswer => {
         this.setState({
             userAnswer: selectedAnswer,
             btnDisabled: false
+        })
+    }
+    gameOver = () => {
+        this.setState({
+            quizEnd: true
         })
     }
 
@@ -108,18 +159,28 @@ class Quiz extends Component {
                 </p>
             )
         })
-
-        return (
-            <div>
-                <Levels />
-                <ProgressBar />
-                <h2>{this.state.question}</h2>
-
-                { displayOptions}
-
-                <button  onClick={()=>this.nextQuestion()} disabled={this.state.btnDisabled} className='btnSubmit'>Suivant</button>
-            </div>
+        //Si le state de quizEnd est true, on affiche le composant QuizOver, sinon on affiche les composants du quiz.
+        return !this.state.quizEnd ? (
+            <QuizOver ref={this.storedDataRef}  />
         )
+            :
+            (
+
+                <Fragment>
+                    <Levels />
+                    <ProgressBar idQuestion={this.state.idQuestion} maxQuestions={this.state.maxQuestions} />
+                    <h2>{this.state.question}</h2>
+
+                    { displayOptions}
+
+                    <button onClick={() => this.nextQuestion()} 
+                    disabled={this.state.btnDisabled} 
+                    className='btnSubmit'
+                    >
+                        {this.state.idQuestion < this.state.maxQuestions -1 ? 'Suivant' : 'Terminer'}
+                    </button>
+                </Fragment>
+            )
     }
 }
 
