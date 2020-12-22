@@ -1,7 +1,8 @@
-import React, { useState, Fragment, useContext, useEffect } from 'react'
+import React, { useState, useContext, useEffect } from 'react'
 import { FirebaseContext } from '../Firebase'
 import Logout from '../Logout'
 import Quiz from '../Quiz'
+import Loader from '../Loader';
 
 const Welcome = props => {
 
@@ -45,10 +46,10 @@ const Welcome = props => {
     //si userSession est null, on affiche un loader le temps que le listener fasse sa vérif et redirige au besoin.
     //si le listener détecte un user on affiche le contenu.
     return userSession === null ? (
-        <Fragment>
-            <div className='loader'></div>
-            <p>Loading ...</p>
-        </Fragment>
+        <Loader
+            loadingMsg={'Authentification...'}
+            styling={{ textAlign: 'center', color: '#FFFFFF' }}
+        />
     ) : (
             <div className='quiz-bg'>
                 <div className='container'>
