@@ -33,13 +33,11 @@ class Quiz extends Component {
     constructor(props) {
         super(props)
 
-
-
         this.state = initialState;
+        this.storedDataRef = React.createRef();
 
     }
 
-    storedDataRef = React.createRef();
 
     loadQuestions = quizz => {
         //on récupère les datas du quiz
@@ -49,7 +47,7 @@ class Quiz extends Component {
             //on stock toutes les datas récupérées dans notre Ref, storeDataRef.
             this.storedDataRef.current = fetchedArrayQuiz;
             //on crée un nouveau tableau sans la data réponse et on met à jour le state storedQuestions.
-            const newArray = fetchedArrayQuiz.map(({ answer, ...keepRest }) => keepRest);
+            const newArray = fetchedArrayQuiz.map( ({ answer, ...keepRest}) => keepRest);
             this.setState({ storedQuestions: newArray })
         }
     }
@@ -171,8 +169,8 @@ class Quiz extends Component {
     }
 
     loadLevelQuestions = param => {
-        this.setState({ ...this.initialState, quizLevel: param })
-        this.loadQuestions(levelNames[param])
+        this.setState({ ...initialState, quizLevel: param });
+        this.loadQuestions(levelNames[param]);
     }
 
     render() {
